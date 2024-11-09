@@ -36,6 +36,63 @@ class RestaurantViewSet(viewsets.ModelViewSet):
         serializer = MenuVersionSerializer(versions, many=True)
         return Response(serializer.data)
 
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        # Get the current menu version
+        current_menu = MenuVersion.objects.filter(
+            restaurant=instance,
+            is_current=True
+        ).first()
+        
+        # Use the detailed serializer
+        serializer = self.get_serializer(instance)
+        data = serializer.data
+        
+        # Add current menu data if it exists
+        if current_menu:
+            data['current_menu'] = MenuVersionSerializer(current_menu).data
+            
+        return Response(data)
+
+    @action(detail=True, methods=['get'])
+    def full_details(self, request, pk=None):
+        restaurant = self.get_object()
+        
+        # Get current menu version
+        current_menu = MenuVersion.objects.filter(
+            restaurant=restaurant,
+            is_current=True
+        ).first()
+        
+        # Get all menu versions
+        menu_versions = MenuVersion.objects.filter(restaurant=restaurant)
+        
+        # If there's a current menu, get its sections and items
+        menu_data = None
+        if current_menu:
+            sections = MenuSection.objects.filter(version=current_menu).order_by('display_order')
+            sections_data = []
+            
+            for section in sections:
+                items = MenuItem.objects.filter(section=section).order_by('display_order')
+                sections_data.append({
+                    **MenuSectionSerializer(section).data,
+                    'items': MenuItemSerializer(items, many=True).data
+                })
+            
+            menu_data = {
+                **MenuVersionSerializer(current_menu).data,
+                'sections': sections_data
+            }
+        
+        response_data = {
+            **self.get_serializer(restaurant).data,
+            'current_menu': menu_data,
+            'all_versions': MenuVersionSerializer(menu_versions, many=True).data
+        }
+        
+        return Response(response_data)
+
 class MenuVersionViewSet(viewsets.ModelViewSet):
     queryset = MenuVersion.objects.all()
     serializer_class = MenuVersionSerializer
@@ -93,3 +150,4 @@ class DietaryRestrictionViewSet(viewsets.ModelViewSet):
     serializer_class = DietaryRestrictionSerializer
     filter_backends = [filters.SearchFilter]
     search_fields = ['name']
+

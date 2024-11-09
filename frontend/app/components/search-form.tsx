@@ -1,4 +1,5 @@
 import { Search } from "lucide-react"
+import * as React from "react"
 
 import { Label } from "~/components/ui/label"
 import {
@@ -7,9 +8,20 @@ import {
   SidebarInput,
 } from "~/components/ui/sidebar"
 
-export function SearchForm({ ...props }: React.ComponentProps<"form">) {
+interface SearchFormProps extends Omit<React.ComponentProps<"form">, "onSubmit"> {
+  onSearch?: (query: string) => void;
+}
+
+export function SearchForm({ onSearch, ...props }: SearchFormProps) {
+  const [query, setQuery] = React.useState("");
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSearch?.(query);
+  };
+
   return (
-    <form {...props}>
+    <form onSubmit={handleSubmit} {...props}>
       <SidebarGroup className="py-0">
         <SidebarGroupContent className="relative">
           <Label htmlFor="search" className="sr-only">
@@ -17,6 +29,8 @@ export function SearchForm({ ...props }: React.ComponentProps<"form">) {
           </Label>
           <SidebarInput
             id="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
             placeholder="Search restaurants..."
             className="pl-8"
           />

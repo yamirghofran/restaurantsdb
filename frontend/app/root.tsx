@@ -4,8 +4,10 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useRouteError,
+  isRouteErrorResponse,
 } from "@remix-run/react";
-import type { LinksFunction } from "@remix-run/node";
+import type { LinksFunction, LoaderFunction } from "@remix-run/node";
 
 import "./tailwind.css";
 import { SidebarProvider, SidebarTrigger } from "./components/ui/sidebar";
@@ -43,4 +45,34 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return <Outlet />;
+}
+
+export function ErrorBoundary() {
+  const error = useRouteError();
+
+  return (
+    <html lang="en" className="h-full">
+      <head>
+        <Meta />
+        <Links />
+      </head>
+      <body className="h-full">
+        <div className="min-h-full flex flex-col items-center justify-center p-4">
+          <div className="space-y-4 text-center">
+            <h1 className="text-2xl font-bold">
+              {isRouteErrorResponse(error)
+                ? `${error.status} ${error.statusText}`
+                : 'Application Error'}
+            </h1>
+            <p className="text-gray-600">
+              {isRouteErrorResponse(error)
+                ? error.data
+                : 'Sorry, something went wrong. Please try again later.'}
+            </p>
+          </div>
+        </div>
+        <Scripts />
+      </body>
+    </html>
+  );
 }

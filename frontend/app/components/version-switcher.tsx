@@ -13,14 +13,25 @@ import {
   SidebarMenuItem,
 } from "~/components/ui/sidebar"
 
+interface VersionSwitcherProps {
+  versions: string[];
+  defaultVersion: string;
+  restaurantName: string;
+  onVersionChange?: (version: string) => void;
+}
+
 export function VersionSwitcher({
   versions,
   defaultVersion,
-}: {
-  versions: string[]
-  defaultVersion: string
-}) {
+  restaurantName,
+  onVersionChange,
+}: VersionSwitcherProps) {
   const [selectedVersion, setSelectedVersion] = React.useState(defaultVersion)
+
+  const handleVersionSelect = (version: string) => {
+    setSelectedVersion(version);
+    onVersionChange?.(version);
+  };
 
   return (
     <SidebarMenu>
@@ -35,7 +46,7 @@ export function VersionSwitcher({
                 <GalleryVerticalEnd className="size-4" />
               </div>
               <div className="flex flex-col gap-0.5 leading-none">
-                <span className="font-semibold">Restaurants</span>
+                <span className="font-semibold">{restaurantName}</span>
                 <span className="">v{selectedVersion}</span>
               </div>
               <ChevronsUpDown className="ml-auto" />
@@ -48,9 +59,9 @@ export function VersionSwitcher({
             {versions.map((version) => (
               <DropdownMenuItem
                 key={version}
-                onSelect={() => setSelectedVersion(version)}
+                onSelect={() => handleVersionSelect(version)}
               >
-                v{version}{" "}
+                v{version}
                 {version === selectedVersion && <Check className="ml-auto" />}
               </DropdownMenuItem>
             ))}
