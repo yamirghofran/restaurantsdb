@@ -1,4 +1,4 @@
-from .base import BaseExtractor
+from ..transformers.base import BaseExtractor
 import PyPDF2
 import io
 

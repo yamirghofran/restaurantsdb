@@ -5,3 +5,9 @@ class BaseExtractor(ABC):
     def extract(self, source_path: str) -> str:
         """Extract text content from source"""
         pass 
+
+class BaseTransformer(ABC):
+    @abstractmethod
+    def transform(self, text: str) -> dict:
+        """Transform extracted text into structured data"""
+        pass 
