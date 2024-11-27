@@ -1,5 +1,5 @@
 import * as React from "react"
-import { useNavigate, useSearchParams } from "@remix-run/react"
+import { useNavigate, useSearchParams, useFetcher, useRevalidator } from "@remix-run/react"
 import { SearchForm } from "~/components/search-form"
 import { VersionSwitcher } from "~/components/version-switcher"
 import type { Restaurant } from "~/types/menu"
@@ -15,6 +15,10 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "~/components/ui/sidebar"
+import { Button } from "~/components/ui/button"
+import { Input } from "./ui/input"
+import { uploadMenuFile } from "~/utils/api"
+import { Loader2 } from "lucide-react"
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   restaurants: Restaurant[];
@@ -24,10 +28,15 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
 export function AppSidebar({ 
   restaurants, 
   currentRestaurantId,
-  ...props 
+  ...props
 }: AppSidebarProps) {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const [isUploading, setIsUploading] = React.useState(false);
+  const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
+  const fetcher = useFetcher();
+  const [uploadStatus, setUploadStatus] = React.useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
+  const revalidator = useRevalidator();
   
   const currentRestaurant = React.useMemo(
     () => restaurants.find(r => r.id === currentRestaurantId),
@@ -49,6 +58,26 @@ export function AppSidebar({
   const handleRestaurantClick = (restaurantId: number) => {
     // Update the URL with the selected restaurant
     setSearchParams({ restaurantId: restaurantId.toString() });
+  };
+
+  const handleFileUpload = async () => {
+    if (!selectedFile) return;
+
+    setUploadStatus('uploading');
+
+    try {
+      await uploadMenuFile(selectedFile);
+      setUploadStatus('success');
+      
+      // Revalidate the route data
+      revalidator.revalidate();
+    } catch (error) {
+      console.error('Menu upload failed:', error);
+      setUploadStatus('error');
+    }
+
+    setIsUploading(false);
+    setSelectedFile(null);
   };
 
   return (
@@ -82,6 +111,52 @@ export function AppSidebar({
             });
           }}
         />
+        {!isUploading && (
+          <Button 
+            size="sm" 
+            onClick={() => {
+              setIsUploading(true);
+              setUploadStatus('idle');
+            }}
+          >
+            Upload Menu
+          </Button>
+        )}
+      
+        {isUploading && (
+          <Input 
+            type="file" 
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) setSelectedFile(file);
+            }} 
+          />
+        )}
+        {isUploading && (
+          <div className="flex gap-2">
+            <Button 
+              size="sm" 
+              disabled={!selectedFile || uploadStatus === 'uploading'}
+              onClick={handleFileUpload}
+              className={uploadStatus === 'uploading' ? 'animate-spin' : ''}
+            >
+              {uploadStatus === 'uploading' ? 'Uploading...' : selectedFile ? 'Upload' : 'Select File'}
+            </Button>
+            <Button 
+              size="sm" 
+              variant="outline" 
+              onClick={() => {
+                setIsUploading(false);
+                setSelectedFile(null);
+                setUploadStatus('idle');
+              }}
+            >
+              Cancel
+            </Button>
+          </div>
+        )}
+        {uploadStatus === 'success' && <div className="text-green-500">Upload successful!</div>}
+        {uploadStatus === 'error' && <div className="text-red-500">Upload failed. Please try again.</div>}
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>

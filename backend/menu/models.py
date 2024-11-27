@@ -4,7 +4,7 @@ from django.db import models
 class Restaurant(models.Model):
     name = models.CharField(max_length=255)
     address = models.TextField(null=True, blank=True)
-    phone = models.CharField(max_length=20, null=True, blank=True)
+    phone = models.CharField(max_length=50, null=True, blank=True)
     website = models.URLField(max_length=255, null=True, blank=True)
     cuisine_type = models.CharField(max_length=100, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -73,8 +73,6 @@ class MenuItem(models.Model):
             models.Index(fields=['section', 'display_order']),
             models.Index(fields=['name']),
             models.Index(fields=['price']),
-            models.Index(fields=['is_available']),
-            models.Index(fields=['spice_level']),
         ]
 
 class ProcessingLog(models.Model):

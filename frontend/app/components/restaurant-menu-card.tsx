@@ -5,6 +5,13 @@ interface RestaurantMenuCardProps {
   restaurant: Restaurant;
 }
 
+const CURRENCY_SYMBOL_MAP: Record<string, string> = {
+  '€': 'EUR',
+  '$': 'USD',
+  '£': 'GBP',
+  '¥': 'JPY',
+};
+
 export default function RestaurantMenuCard({ restaurant }: RestaurantMenuCardProps) {
   const currentMenu = restaurant.current_menu;
 
@@ -58,10 +65,20 @@ export default function RestaurantMenuCard({ restaurant }: RestaurantMenuCardPro
                   </div>
                 </div>
                 <div className="font-medium">
-                  {new Intl.NumberFormat('en-US', {
-                    style: 'currency',
-                    currency: item.currency,
-                  }).format(item.price)}
+                  {(() => {
+                    try {
+                      const currencyCode = CURRENCY_SYMBOL_MAP[item.currency] || item.currency || 'EUR';
+                      return new Intl.NumberFormat('en-US', {
+                        style: 'currency',
+                        currency: currencyCode,
+                      }).format(item.price);
+                    } catch (e) {
+                      return new Intl.NumberFormat('en-US', {
+                        style: 'currency',
+                        currency: 'EUR',
+                      }).format(item.price);
+                    }
+                  })()}
                 </div>
               </div>
             ))}

@@ -17,6 +17,10 @@ from .serializers import (
     MenuItemSerializer,
     DietaryRestrictionSerializer
 )
+from rest_framework.parsers import MultiPartParser, FormParser
+from django.core.management import call_command
+from django.core.files.storage import default_storage
+import os
 
 class RestaurantViewSet(viewsets.ModelViewSet):
     queryset = Restaurant.objects.all()
@@ -92,6 +96,41 @@ class RestaurantViewSet(viewsets.ModelViewSet):
         }
         
         return Response(response_data)
+
+    @action(detail=False, methods=['post'], parser_classes=[MultiPartParser, FormParser])
+    def process_menu(self, request):
+        menu_file = request.FILES.get('file')
+        if not menu_file:
+            return Response(
+                {'error': 'No file provided'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Check file extension
+        ext = os.path.splitext(menu_file.name)[1].lower()
+        if ext not in ['.pdf', '.html']:
+            return Response(
+                {'error': 'Invalid file format. Only PDF and HTML files are supported'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            # Save file temporarily
+            file_path = default_storage.save(f'temp_menus/{menu_file.name}', menu_file)
+            
+            # Process the file
+            call_command('process', file=default_storage.path(file_path))
+            
+            # Cleanup
+            default_storage.delete(file_path)
+            
+            return Response({'status': 'success'})
+
+        except Exception as e:
+            return Response(
+                {'error': str(e)}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 class MenuVersionViewSet(viewsets.ModelViewSet):
     queryset = MenuVersion.objects.all()

@@ -30,26 +30,17 @@ export const loader: LoaderFunction = async ({ request }) => {
     const restaurantsResponse = await fetchFromApi<{ results: Restaurant[] }>('/restaurants/');
     const restaurants = restaurantsResponse.results;
     
-    // Get current restaurant from URL or default to first one
     const url = new URL(request.url);
     const restaurantId = url.searchParams.get('restaurantId');
     
-    console.log('Requested restaurantId:', restaurantId);
-
     let currentRestaurant = null;
     if (restaurantId) {
-      // Get full details for selected restaurant
       currentRestaurant = await fetchFromApi<Restaurant>(`/restaurants/${restaurantId}/full_details/`);
-      console.log('Fetched currentRestaurant:', currentRestaurant);
     } else if (restaurants.length > 0) {
-      // Get full details for first restaurant
       currentRestaurant = await fetchFromApi<Restaurant>(`/restaurants/${restaurants[0].id}/full_details/`);
     }
     
-    return { 
-      restaurants,
-      currentRestaurant
-    };
+    return { restaurants, currentRestaurant };
   } catch (error) {
     console.error('Failed to load restaurants:', error);
     throw new Response("Failed to load restaurants", { status: 500 });
