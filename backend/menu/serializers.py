@@ -108,3 +108,9 @@ class RestaurantListSerializer(serializers.ModelSerializer):
             'address',
             'is_active',
         ] 
+class MenuItemSearchSerializer(MenuItemSerializer):
+    restaurant_id = serializers.IntegerField()
+    restaurant_name = serializers.CharField()
+
+    class Meta(MenuItemSerializer.Meta):
+        fields = MenuItemSerializer.Meta.fields + ['restaurant_id', 'restaurant_name']

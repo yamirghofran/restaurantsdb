@@ -11,6 +11,16 @@ class Restaurant(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True)
 
+    @classmethod
+    def search(cls, query):
+        return cls.objects.raw(
+            """
+            SELECT * FROM menu_restaurant 
+            WHERE MATCH(name, address, cuisine_type) AGAINST (%s IN BOOLEAN MODE)
+            """, 
+            [query]
+        )
+
     class Meta:
         indexes = [
             models.Index(fields=['name']),
@@ -67,6 +77,20 @@ class MenuItem(models.Model):
     display_order = models.IntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
     dietary_restrictions = models.ManyToManyField(DietaryRestriction)
+
+    @classmethod
+    def search(cls, query):
+        return cls.objects.raw(
+            """
+            SELECT mi.*, r.id as restaurant_id, r.name as restaurant_name 
+            FROM menu_menuitem mi
+            JOIN menu_menusection ms ON mi.section_id = ms.id
+            JOIN menu_menuversion mv ON ms.version_id = mv.id
+            JOIN menu_restaurant r ON mv.restaurant_id = r.id
+            WHERE MATCH(mi.name, mi.description) AGAINST (%s IN BOOLEAN MODE)
+            """, 
+            [query]
+        )
 
     class Meta:
         indexes = [

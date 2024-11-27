@@ -17,7 +17,8 @@ from .serializers import (
     MenuSectionSerializer,
     MenuItemSerializer,
     DietaryRestrictionSerializer,
-    MenuStatisticsSerializer
+    MenuStatisticsSerializer,
+    MenuItemSearchSerializer
 )
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.core.management import call_command
@@ -42,6 +43,22 @@ class RestaurantViewSet(viewsets.ModelViewSet):
         versions = MenuVersion.objects.filter(restaurant=restaurant)
         serializer = MenuVersionSerializer(versions, many=True)
         return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'])
+    def unified_search(self, request):
+        query = request.query_params.get('q', '')
+        if not query:
+            return Response([])
+            
+        restaurants = Restaurant.search(query)
+        menu_items = MenuItem.search(query)
+
+        response = {
+            'restaurants': RestaurantListSerializer(restaurants, many=True).data,
+            'menu_items': MenuItemSearchSerializer(menu_items, many=True).data
+        }
+            
+        return Response(response)
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
