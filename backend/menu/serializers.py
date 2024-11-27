@@ -65,14 +65,7 @@ class MenuVersionSerializer(serializers.ModelSerializer):
 class MenuStatisticsSerializer(serializers.ModelSerializer):
     class Meta:
         model = MenuStatistics
-        fields = [
-            'total_items',
-            'avg_price',
-            'vegetarian_count',
-            'vegan_count',
-            'gluten_free_count',
-            'last_updated',
-        ]
+        fields = ['restaurant_id', 'total_items', 'avg_price', 'last_updated']
 
 class RestaurantSerializer(serializers.ModelSerializer):
     current_menu = serializers.SerializerMethodField()

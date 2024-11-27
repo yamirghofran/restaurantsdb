@@ -7,7 +7,8 @@ from .models import (
     MenuVersion,
     MenuSection,
     MenuItem,
-    DietaryRestriction
+    DietaryRestriction,
+    MenuStatistics
 )
 from .serializers import (
     RestaurantSerializer,
@@ -15,12 +16,14 @@ from .serializers import (
     MenuVersionSerializer,
     MenuSectionSerializer,
     MenuItemSerializer,
-    DietaryRestrictionSerializer
+    DietaryRestrictionSerializer,
+    MenuStatisticsSerializer
 )
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.core.management import call_command
 from django.core.files.storage import default_storage
 import os
+from django_filters import FilterSet, NumberFilter
 
 class RestaurantViewSet(viewsets.ModelViewSet):
     queryset = Restaurant.objects.all()
@@ -189,4 +192,20 @@ class DietaryRestrictionViewSet(viewsets.ModelViewSet):
     serializer_class = DietaryRestrictionSerializer
     filter_backends = [filters.SearchFilter]
     search_fields = ['name']
+
+class MenuStatisticsFilter(FilterSet):
+    min_items = NumberFilter(field_name='total_items', lookup_expr='gte')
+    max_items = NumberFilter(field_name='total_items', lookup_expr='lte')
+    min_price = NumberFilter(field_name='avg_price', lookup_expr='gte')
+    max_price = NumberFilter(field_name='avg_price', lookup_expr='lte')
+
+    class Meta:
+        model = MenuStatistics
+        fields = ['min_items', 'max_items', 'min_price', 'max_price']
+
+class MenuStatisticsViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = MenuStatistics.objects.all()
+    serializer_class = MenuStatisticsSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = MenuStatisticsFilter
 

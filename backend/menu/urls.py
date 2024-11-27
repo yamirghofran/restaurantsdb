@@ -5,7 +5,8 @@ from .views import (
     MenuVersionViewSet,
     MenuSectionViewSet,
     MenuItemViewSet,
-    DietaryRestrictionViewSet
+    DietaryRestrictionViewSet,
+    MenuStatisticsViewSet
 )
 
 router = DefaultRouter()
@@ -14,6 +15,7 @@ router.register(r'menu-versions', MenuVersionViewSet)
 router.register(r'menu-sections', MenuSectionViewSet)
 router.register(r'menu-items', MenuItemViewSet)
 router.register(r'dietary-restrictions', DietaryRestrictionViewSet)
+router.register(r'statistics', MenuStatisticsViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),

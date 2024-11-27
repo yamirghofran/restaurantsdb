@@ -104,13 +104,14 @@ class ProcessingLog(models.Model):
         ]
 
 class MenuStatistics(models.Model):
-    restaurant = models.OneToOneField(Restaurant, on_delete=models.CASCADE, primary_key=True)
-    total_items = models.IntegerField(null=True, blank=True)
-    avg_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    vegetarian_count = models.IntegerField(null=True, blank=True)
-    vegan_count = models.IntegerField(null=True, blank=True)
-    gluten_free_count = models.IntegerField(null=True, blank=True)
+    restaurant = models.OneToOneField(Restaurant, primary_key=True, on_delete=models.DO_NOTHING)
+    total_items = models.IntegerField()
+    avg_price = models.DecimalField(max_digits=10, decimal_places=2)
     last_updated = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = 'v_menu_statistics'
 
 class SearchIndex(models.Model):
     ENTITY_CHOICES = [
