@@ -65,11 +65,11 @@ export const loader: LoaderFunction = async ({ request }) => {
 
 export default function Index() {
   const { restaurants, currentRestaurant, statistics, filters } = useLoaderData<LoaderData>();
-  const [priceRange, setPriceRange] = React.useState([
+  const [priceRange, setPriceRange] = React.useState<[number, number]>([
     parseInt(filters.minPrice),
     parseInt(filters.maxPrice)
   ]);
-  const [itemCountRange, setItemCountRange] = React.useState([
+  const [itemCountRange, setItemCountRange] = React.useState<[number, number]>([
     parseInt(filters.minItems),
     parseInt(filters.maxItems)
   ]);

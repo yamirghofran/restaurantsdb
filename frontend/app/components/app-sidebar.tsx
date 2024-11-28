@@ -66,8 +66,9 @@ export function AppSidebar({
   }, [currentRestaurant]);
 
   const handleRestaurantClick = (restaurantId: number) => {
-    // Update the URL with the selected restaurant
-    setSearchParams({ restaurantId: restaurantId.toString() });
+    const params = new URLSearchParams(window.location.search);
+    params.set('restaurantId', restaurantId.toString());
+    navigate(`?${params.toString()}`);
   };
 
   const handleFileUpload = async () => {
