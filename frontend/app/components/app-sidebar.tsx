@@ -22,15 +22,22 @@ import { Loader2 } from "lucide-react"
 import { DualRangeSlider } from "./ui/dual-slider"
 import { Label } from "./ui/label"
 
-interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
+interface AppSidebarProps {
   restaurants: Restaurant[];
   currentRestaurantId?: number;
+  priceRange: [number, number];
+  setPriceRange: (range: [number, number]) => void;
+  itemCountRange: [number, number];
+  setItemCountRange: (range: [number, number]) => void;
 }
 
 export function AppSidebar({ 
   restaurants, 
   currentRestaurantId,
-  ...props
+  priceRange,
+  setPriceRange,
+  itemCountRange,
+  setItemCountRange
 }: AppSidebarProps) {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -40,9 +47,7 @@ export function AppSidebar({
   const [uploadStatus, setUploadStatus] = React.useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
   const revalidator = useRevalidator();
   const [searchResults, setSearchResults] = React.useState<{ restaurants: Restaurant[], menu_items: MenuItem[] } | null>(null);
-  const [priceRange, setPriceRange] = React.useState([0, 5000]);
-  const [itemCountRange, setItemCountRange] = React.useState([0, 100]);
-  
+
   const currentRestaurant = React.useMemo(
     () => restaurants.find(r => r.id === currentRestaurantId),
     [restaurants, currentRestaurantId]
@@ -96,7 +101,7 @@ export function AppSidebar({
   const displayedRestaurants = searchResults?.restaurants || restaurants;
 
   return (
-    <Sidebar {...props}>
+    <Sidebar>
       <SidebarHeader>
         {currentRestaurant && menuVersions.length > 0 && (
           <VersionSwitcher
