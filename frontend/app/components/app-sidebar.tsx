@@ -19,7 +19,8 @@ import { Button } from "~/components/ui/button"
 import { Input } from "./ui/input"
 import { uploadMenuFile } from "~/utils/api"
 import { Loader2 } from "lucide-react"
-import { Slider } from "./ui/slider"
+import { DualRangeSlider } from "./ui/dual-slider"
+import { Label } from "./ui/label"
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   restaurants: Restaurant[];
@@ -39,6 +40,8 @@ export function AppSidebar({
   const [uploadStatus, setUploadStatus] = React.useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
   const revalidator = useRevalidator();
   const [searchResults, setSearchResults] = React.useState<{ restaurants: Restaurant[], menu_items: MenuItem[] } | null>(null);
+  const [priceRange, setPriceRange] = React.useState([0, 5000]);
+  const [itemCountRange, setItemCountRange] = React.useState([0, 100]);
   
   const currentRestaurant = React.useMemo(
     () => restaurants.find(r => r.id === currentRestaurantId),
@@ -158,6 +161,33 @@ export function AppSidebar({
         )}
         {uploadStatus === 'success' && <div className="text-green-500">Upload successful!</div>}
         {uploadStatus === 'error' && <div className="text-red-500">Upload failed. Please try again.</div>}
+
+        <div className="flex flex-col gap-2 mt-4">
+          <Label>Average Price</Label>
+          <DualRangeSlider
+            className="mt-6"
+            label={(value) => <span>${value}</span>}
+            value={priceRange}
+            onValueChange={setPriceRange}
+            min={0}
+            max={5000}
+            step={20}
+          />
+        </div>
+
+        <div className="flex flex-col gap-2 mt-8">
+          <Label>Item Count</Label>
+          <DualRangeSlider
+            className="mt-6"
+            label={(value) => <span>{value}</span>}
+            value={itemCountRange}
+            onValueChange={setItemCountRange}
+            min={0}
+            max={100}
+            step={1}
+          />
+        </div>
+
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
