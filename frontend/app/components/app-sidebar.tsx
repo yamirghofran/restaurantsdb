@@ -19,6 +19,7 @@ import { Button } from "~/components/ui/button"
 import { Input } from "./ui/input"
 import { uploadMenuFile } from "~/utils/api"
 import { Loader2 } from "lucide-react"
+import { Slider } from "./ui/slider"
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   restaurants: Restaurant[];
