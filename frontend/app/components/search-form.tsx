@@ -7,17 +7,28 @@ import {
   SidebarGroupContent,
   SidebarInput,
 } from "~/components/ui/sidebar"
+import { fetchFromApi } from "~/utils/api";
+import type { Restaurant, MenuItem } from "~/types/menu";
 
 interface SearchFormProps extends Omit<React.ComponentProps<"form">, "onSubmit"> {
-  onSearch?: (query: string) => void;
+  onSearch?: (results: { restaurants: Restaurant[], menu_items: MenuItem[] }) => void;
 }
 
 export function SearchForm({ onSearch, ...props }: SearchFormProps) {
   const [query, setQuery] = React.useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSearch?.(query);
+    if (query.trim() !== "") {
+      try {
+        const response = await fetchFromApi<{ restaurants: Restaurant[], menu_items: MenuItem[] }>(`/restaurants/unified_search/?q=${encodeURIComponent(query)}`);
+        onSearch?.(response);
+      } catch (error) {
+        console.error('Search failed:', error);
+      }
+    } else {
+      onSearch?.({ restaurants: [], menu_items: [] });
+    }
   };
 
   return (

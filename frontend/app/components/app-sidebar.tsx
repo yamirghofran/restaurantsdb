@@ -2,7 +2,7 @@ import * as React from "react"
 import { useNavigate, useSearchParams, useFetcher, useRevalidator } from "@remix-run/react"
 import { SearchForm } from "~/components/search-form"
 import { VersionSwitcher } from "~/components/version-switcher"
-import type { Restaurant } from "~/types/menu"
+import type { Restaurant, MenuItem } from "~/types/menu"
 import {
   Sidebar,
   SidebarContent,
@@ -38,6 +38,7 @@ export function AppSidebar({
   const fetcher = useFetcher();
   const [uploadStatus, setUploadStatus] = React.useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
   const revalidator = useRevalidator();
+  const [searchResults, setSearchResults] = React.useState<{ restaurants: Restaurant[], menu_items: MenuItem[] } | null>(null);
   
   const currentRestaurant = React.useMemo(
     () => restaurants.find(r => r.id === currentRestaurantId),
@@ -81,6 +82,16 @@ export function AppSidebar({
     setSelectedFile(null);
   };
 
+  const handleSearch = (results: { restaurants: Restaurant[], menu_items: MenuItem[] }) => {
+    if (results.restaurants.length === 0 && results.menu_items.length === 0) {
+      setSearchResults(null);
+    } else {
+      setSearchResults(results);
+    }
+  };
+  
+  const displayedRestaurants = searchResults?.restaurants || restaurants;
+
   return (
     <Sidebar {...props}>
       <SidebarHeader>
@@ -100,18 +111,7 @@ export function AppSidebar({
             }}
           />
         )}
-        <SearchForm 
-          onSearch={(query) => {
-            setSearchParams(prev => {
-              if (query) {
-                prev.set('q', query);
-              } else {
-                prev.delete('q');
-              }
-              return prev;
-            });
-          }}
-        />
+        <SearchForm onSearch={handleSearch} />
         {!isUploading && (
           <Button 
             size="sm" 
@@ -164,7 +164,7 @@ export function AppSidebar({
           <SidebarGroupLabel>Restaurants</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {restaurants.map((restaurant) => (
+              {displayedRestaurants.map((restaurant) => (
                 <SidebarMenuItem key={restaurant.id}>
                   <SidebarMenuButton 
                     isActive={restaurant.id === currentRestaurantId}
@@ -184,6 +184,31 @@ export function AppSidebar({
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+        {searchResults && searchResults.menu_items.length > 0 && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Menu Items</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {searchResults.menu_items.map((item) => (
+                  <SidebarMenuItem key={item.id}>
+                    <SidebarMenuButton
+                      onClick={() => {
+                        setSearchParams({ restaurantId: item.restaurant_id.toString() });
+                      }}
+                    >
+                      <div className="flex flex-col gap-0.5">
+                        <span>{item.name}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {item.restaurant_name}
+                        </span>
+                      </div>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
       <SidebarRail />
     </Sidebar>
