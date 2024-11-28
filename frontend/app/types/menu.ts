@@ -3,10 +3,15 @@ export interface MenuItem {
   name: string;
   description: string;
   price: string;
-  is_available: boolean;
+  currency: string;
+  calories: number;
   spice_level: number;
+  is_available: boolean;
   display_order: number;
-  dietary_restrictions: number[];
+  dietary_restrictions: DietaryRestriction[];
+  created_at: string;
+  restaurant_id: number;
+  restaurant_name: string;
 }
 
 export interface MenuSection {
