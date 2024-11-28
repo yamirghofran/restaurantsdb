@@ -55,14 +55,8 @@ export function AppSidebar({
 
   // Get all menu versions for the current restaurant
   const menuVersions = React.useMemo(() => {
-    if (!currentRestaurant?.current_menu) return [];
-    
-    return [{
-      id: currentRestaurant.current_menu.id,
-      version: currentRestaurant.current_menu.version_number.toString(),
-      date: new Date(currentRestaurant.current_menu.effective_date).toLocaleDateString(),
-      is_current: currentRestaurant.current_menu.is_current
-    }];
+    if (!currentRestaurant?.all_versions) return [];
+    return currentRestaurant.all_versions;
   }, [currentRestaurant]);
 
   const handleRestaurantClick = (restaurantId: number) => {
@@ -106,17 +100,14 @@ export function AppSidebar({
       <SidebarHeader>
         {currentRestaurant && menuVersions.length > 0 && (
           <VersionSwitcher
-            versions={menuVersions.map(v => v.version)}
-            defaultVersion={menuVersions.find(v => v.is_current)?.version || menuVersions[0].version}
+            versions={menuVersions}
+            selectedVersion={searchParams.get('versionId') ? parseInt(searchParams.get('versionId')!) : undefined}
             restaurantName={currentRestaurant.name}
-            onVersionChange={(version) => {
-              const versionData = menuVersions.find(v => v.version === version);
-              if (versionData) {
-                setSearchParams(prev => {
-                  prev.set('versionId', versionData.id.toString());
-                  return prev;
-                });
-              }
+            onVersionChange={(versionId) => {
+              setSearchParams(prev => {
+                prev.set('versionId', versionId.toString());
+                return prev;
+              });
             }}
           />
         )}
