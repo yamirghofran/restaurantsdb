@@ -25,6 +25,7 @@ interface LoaderData {
   currentRestaurant: Restaurant | null;
   statistics: Array<{ restaurant_id: number; total_items: number; avg_price: string; }>;
   filters: { minPrice: string; maxPrice: string; minItems: string; maxItems: string; };
+  selectedVersion?: number;
 }
 
 export const loader: LoaderFunction = async ({ request }) => {
@@ -34,6 +35,7 @@ export const loader: LoaderFunction = async ({ request }) => {
     const maxPrice = url.searchParams.get('maxPrice') ?? '5000';
     const minItems = url.searchParams.get('minItems') ?? '0';
     const maxItems = url.searchParams.get('maxItems') ?? '100';
+    const versionId = url.searchParams.get('versionId');
     
     // Get statistics first
     const statsResponse = await fetchFromApi<{ results: Array<{ restaurant_id: number; total_items: number; avg_price: string; }> }>(
@@ -52,11 +54,24 @@ export const loader: LoaderFunction = async ({ request }) => {
     let currentRestaurant = null;
     if (restaurantId) {
       currentRestaurant = await fetchFromApi<Restaurant>(`/restaurants/${restaurantId}/full_details/`);
+      
+      if (versionId && currentRestaurant.all_versions) {
+        const selectedVersion = currentRestaurant.all_versions.find(v => v.id === parseInt(versionId));
+        if (selectedVersion) {
+          currentRestaurant.current_menu = selectedVersion;
+        }
+      }
     } else if (restaurants.length > 0) {
       currentRestaurant = await fetchFromApi<Restaurant>(`/restaurants/${restaurants[0].id}/full_details/`);
     }
     
-    return { restaurants, currentRestaurant, statistics: statsResponse.results, filters: { minPrice, maxPrice, minItems, maxItems } };
+    return { 
+      restaurants, 
+      currentRestaurant, 
+      statistics: statsResponse.results, 
+      filters: { minPrice, maxPrice, minItems, maxItems },
+      selectedVersion: versionId ? parseInt(versionId) : undefined
+    };
   } catch (error) {
     console.error('Failed to load data:', error);
     throw new Response("Failed to load data", { status: 500 });
@@ -64,7 +79,7 @@ export const loader: LoaderFunction = async ({ request }) => {
 };
 
 export default function Index() {
-  const { restaurants, currentRestaurant, statistics, filters } = useLoaderData<LoaderData>();
+  const { restaurants, currentRestaurant, statistics, filters, selectedVersion } = useLoaderData<LoaderData>();
   const [priceRange, setPriceRange] = React.useState<[number, number]>([
     parseInt(filters.minPrice),
     parseInt(filters.maxPrice)

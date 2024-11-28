@@ -1,5 +1,6 @@
 import type { Restaurant } from "~/types/menu";
 import { Card, CardHeader, CardTitle } from "~/components/ui/card";
+import { VersionSwitcher } from "~/components/version-switcher";
 
 interface RestaurantMenuCardProps {
   restaurant: Restaurant;
@@ -25,8 +26,19 @@ export default function RestaurantMenuCard({ restaurant }: RestaurantMenuCardPro
 
   return (
     <div className="p-4 space-y-6">
-      <div className="text-sm text-gray-500">
-        Menu version {currentMenu.version_number} - Effective {new Date(currentMenu.effective_date).toLocaleDateString()}
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold">{restaurant.name}</h2>
+        {restaurant.all_versions && restaurant.all_versions.length > 1 && (
+          <VersionSwitcher
+            versions={restaurant.all_versions}
+            selectedVersion={currentMenu.id}
+            onVersionChange={(versionId) => {
+              const params = new URLSearchParams(window.location.search);
+              params.set('versionId', versionId.toString());
+              window.location.search = params.toString();
+            }}
+          />
+        )}
       </div>
       {currentMenu.sections.map((section) => (
         <Card key={section.id}>
