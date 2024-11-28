@@ -51,7 +51,7 @@ class Command(BaseCommand):
                 messages=[
                     {
                         "role": "system", 
-                        "content": [{"type": "text", "text": "Return information from a restaurant menu in the specified json schema."}]
+                        "content": [{"type": "text", "text": "Return information from a restaurant menu in the specified json schema. Make sure to include all the information, sections, menu items, etc. in the menu."}]
                     },
                     {
                         "role": "user",
@@ -153,12 +153,12 @@ class Command(BaseCommand):
                     }
                 )
 
+                # Set all previous versions to not current
+                MenuVersion.objects.filter(restaurant=restaurant).update(is_current=False)
+
                 # Get the latest version number for this restaurant
                 latest_version = MenuVersion.objects.filter(restaurant=restaurant).order_by('-version_number').first()
                 new_version_number = (latest_version.version_number + 1) if latest_version else 1
-
-                # Set all previous versions to not current
-                MenuVersion.objects.filter(restaurant=restaurant).update(is_current=False)
 
                 # Create new version
                 menu_version_data = menu_json['menu_version']

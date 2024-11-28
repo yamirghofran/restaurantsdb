@@ -97,7 +97,18 @@ BEGIN
         avg_price = VALUES(avg_price),
         last_updated = NOW();
 END//
+
+CREATE TRIGGER delete_restaurant_stats
+AFTER DELETE ON menu_restaurant 
+FOR EACH ROW
+BEGIN
+    DELETE FROM menu_menustatistics 
+    WHERE restaurant_id = OLD.id;
+END//
 DELIMITER ;
+
+
+
 
 -- Initialize the stats
 INSERT INTO menu_menustatistics (restaurant_id, total_items, avg_price, last_updated)

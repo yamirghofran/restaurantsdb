@@ -36,6 +36,7 @@ export default function RestaurantMenuCard({ restaurant }: RestaurantMenuCardPro
               <p className="text-sm text-gray-600">{section.description}</p>
             )}
           </CardHeader>
+          <div className="mx-4 border-t border-1 mb-6 border-black"></div>
           <div className="p-6 pt-0 space-y-4">
             {section.menu_items.map((item) => (
               <div 

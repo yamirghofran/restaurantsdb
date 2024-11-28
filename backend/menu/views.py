@@ -88,8 +88,13 @@ class RestaurantViewSet(viewsets.ModelViewSet):
             is_current=True
         ).first()
         
-        # Get all menu versions
+        # Get all menu versions and mark the current one
         menu_versions = MenuVersion.objects.filter(restaurant=restaurant)
+        versions_data = []
+        for version in menu_versions:
+            version_data = MenuVersionSerializer(version).data
+            version_data['is_current'] = version.id == current_menu.id if current_menu else False
+            versions_data.append(version_data)
         
         # If there's a current menu, get its sections and items
         menu_data = None
@@ -112,7 +117,7 @@ class RestaurantViewSet(viewsets.ModelViewSet):
         response_data = {
             **self.get_serializer(restaurant).data,
             'current_menu': menu_data,
-            'all_versions': MenuVersionSerializer(menu_versions, many=True).data
+            'all_versions': versions_data
         }
         
         return Response(response_data)
