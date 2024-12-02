@@ -51,7 +51,7 @@ class Command(BaseCommand):
                 messages=[
                     {
                         "role": "system", 
-                        "content": [{"type": "text", "text": "Return information from a restaurant menu in the specified json schema. Make sure to include all the information, sections, menu items, etc. in the menu."}]
+                        "content": [{"type": "text", "text": "Return information from a restaurant menu in the specified json schema. Make sure to include every single piece of information, sections, menu items, etc. in the menu. Do not leave out any information."}]
                     },
                     {
                         "role": "user",
