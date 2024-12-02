@@ -120,6 +120,7 @@ class ProcessingLog(models.Model):
     end_time = models.DateTimeField(null=True, blank=True)
     error_message = models.TextField(null=True, blank=True)
     metadata = models.JSONField(null=True, blank=True)
+    celery_task_id = models.CharField(max_length=255, null=True, blank=True)
 
     class Meta:
         indexes = [

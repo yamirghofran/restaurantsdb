@@ -8,7 +8,8 @@ from .models import (
     MenuSection,
     MenuItem,
     DietaryRestriction,
-    MenuStatistics
+    MenuStatistics,
+    ProcessingLog
 )
 from .serializers import (
     RestaurantSerializer,
@@ -25,6 +26,7 @@ from django.core.management import call_command
 from django.core.files.storage import default_storage
 import os
 from django_filters import FilterSet, NumberFilter
+from .tasks import process_menu_task
 
 class RestaurantViewSet(viewsets.ModelViewSet):
     queryset = Restaurant.objects.all()
@@ -143,19 +145,33 @@ class RestaurantViewSet(viewsets.ModelViewSet):
             # Save file temporarily
             file_path = default_storage.save(f'temp_menus/{menu_file.name}', menu_file)
             
-            # Process the file
-            call_command('process', file=default_storage.path(file_path))
+            # Launch celery task with file path
+            task = process_menu_task.delay(file_path)
             
-            # Cleanup
-            default_storage.delete(file_path)
-            
-            return Response({'status': 'success'})
+            return Response({
+                'status': 'processing',
+                'task_id': task.id
+            })
 
         except Exception as e:
+            # Cleanup on error
+            if file_path:
+                default_storage.delete(file_path)
             return Response(
                 {'error': str(e)}, 
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+    @action(detail=False, methods=['get'], url_path='tasks/(?P<task_id>[^/.]+)')
+    def task_status(self, request, task_id=None):
+        log = ProcessingLog.objects.filter(celery_task_id=task_id).first()
+        if not log:
+            return Response({'status': 'unknown'})
+        
+        return Response({
+            'status': log.status,
+            'error': log.error_message
+        })
 
 class MenuVersionViewSet(viewsets.ModelViewSet):
     queryset = MenuVersion.objects.all()

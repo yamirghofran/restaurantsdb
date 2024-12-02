@@ -17,7 +17,7 @@ import {
 } from "~/components/ui/sidebar"
 import { Button } from "~/components/ui/button"
 import { Input } from "./ui/input"
-import { uploadMenuFile } from "~/utils/api"
+import { uploadMenuFile, checkTaskStatus } from "~/utils/api"
 import { Loader2 } from "lucide-react"
 import { DualRangeSlider } from "./ui/dual-slider"
 import { Label } from "./ui/label"
@@ -47,6 +47,7 @@ export function AppSidebar({
   const [uploadStatus, setUploadStatus] = React.useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
   const revalidator = useRevalidator();
   const [searchResults, setSearchResults] = React.useState<{ restaurants: Restaurant[], menu_items: MenuItem[] } | null>(null);
+  const [error, setError] = React.useState<string | null>(null);
 
   const currentRestaurant = React.useMemo(
     () => restaurants.find(r => r.id === currentRestaurantId),
@@ -67,22 +68,33 @@ export function AppSidebar({
 
   const handleFileUpload = async () => {
     if (!selectedFile) return;
-
     setUploadStatus('uploading');
 
     try {
-      await uploadMenuFile(selectedFile);
-      setUploadStatus('success');
+      const { taskId } = await uploadMenuFile(selectedFile);
       
-      // Revalidate the route data
-      revalidator.revalidate();
+      // Poll for task status
+      const pollInterval = setInterval(async () => {
+        const status = await checkTaskStatus(taskId);
+        
+        if (status.status === 'completed') {
+          setUploadStatus('success');
+          clearInterval(pollInterval);
+          revalidator.revalidate();
+        } else if (status.status === 'failed') {
+          setUploadStatus('error');
+          setError(status.error);
+          clearInterval(pollInterval);
+        }
+      }, 2000);
+
+      // Cleanup after 5 minutes
+      setTimeout(() => clearInterval(pollInterval), 300000);
+      
     } catch (error) {
       console.error('Menu upload failed:', error);
       setUploadStatus('error');
     }
-
-    setIsUploading(false);
-    setSelectedFile(null);
   };
 
   const handleSearch = (results: { restaurants: Restaurant[], menu_items: MenuItem[] }) => {

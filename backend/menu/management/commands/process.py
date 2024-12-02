@@ -32,7 +32,9 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.stdout.write('Processing menu data...')
         try:
-            file_path = options['file']
+            file_path = options.get('file')
+            if not file_path:
+                raise ValueError('File path is required')
             content = None
             
             if file_path.endswith('.pdf'):
@@ -43,7 +45,7 @@ class Command(BaseCommand):
                 with open(file_path, 'r') as f:
                     content = f.read()
             else:
-                raise ValueError('Unsupported file format. Only PDF and HTML files are supported.')
+                raise ValueError('Unsupported file format')
 
             self.stdout.write('Converting to JSON schema...')
             response = client.chat.completions.create(
@@ -171,14 +173,6 @@ class Command(BaseCommand):
                     is_current=True
                 )
 
-                start_time = timezone.now()
-                processing_log = ProcessingLog.objects.create(
-                    version=menu_version,
-                    process_type='upload',
-                    status='started',
-                    start_time=start_time
-                )
-
                 try:
                     for section_data in menu_json['sections']:
                         section = MenuSection.objects.create(
@@ -205,17 +199,10 @@ class Command(BaseCommand):
                                 restriction, _ = DietaryRestriction.objects.get_or_create(name=restriction_name)
                                 item.dietary_restrictions.add(restriction)
 
-                    processing_log.status = 'completed'
-                    processing_log.end_time = timezone.now()
-                    processing_log.save()
-
                     self.stdout.write(self.style.SUCCESS('Restaurant menu added successfully'))
                 except Exception as e:
-                    processing_log.status = 'failed'
-                    processing_log.end_time = timezone.now()
-                    processing_log.error_message = str(e)
-                    processing_log.save()
                     raise
             
         except Exception as e:
             self.stdout.write(self.style.ERROR(f'Error processing menu data: {str(e)}'))
+            raise

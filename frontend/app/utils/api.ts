@@ -20,7 +20,7 @@ export async function fetchFromApi<T>(
   return response.json();
 }
 
-export async function uploadMenuFile(file: File): Promise<void> {
+export async function uploadMenuFile(file: File): Promise<{taskId: string}> {
   const formData = new FormData();
   formData.append('file', file);
 
@@ -32,6 +32,17 @@ export async function uploadMenuFile(file: File): Promise<void> {
   if (!response.ok) {
     throw new Error(`Menu upload failed: ${response.statusText}`);
   }
+
+  const data = await response.json();
+  return { taskId: data.task_id };
+}
+
+export async function checkTaskStatus(taskId: string): Promise<{status: string, error?: string}> {
+  const response = await fetch(`${API_BASE_URL}/tasks/${taskId}/`);
+  if (!response.ok) {
+    throw new Error('Failed to check task status');
+  }
+  return response.json();
 }
 
 export function debounce<T extends (...args: any[]) => any>(

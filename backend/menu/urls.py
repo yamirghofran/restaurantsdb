@@ -19,4 +19,5 @@ router.register(r'statistics', MenuStatisticsViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('tasks/<str:task_id>/', RestaurantViewSet.as_view({'get': 'task_status'})),
 ] 
