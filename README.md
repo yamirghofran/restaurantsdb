@@ -90,7 +90,7 @@
 
 ## ETL Pipeline (See backend/menu/management/commands/process.py)
 ### Extraction
-- We used the (https://github.com/getomni-ai/zerox)[Zerox] python library to extract the text from the pdf files in markdown format.
+- We used the ![Zerox](https://github.com/getomni-ai/zerox) python library to extract the text from the pdf files in markdown format.
 
 ### Transformation
 - We used the OpenAI API to transform the markdown into a JSON format that obeys our schema structure (enforced with OpenAI Structured Outputs).
