@@ -1,5 +1,5 @@
 # Restaurant Menu Management System
-
+To run the project, follow the instructions in the [backend README](backend/README.md) and [frontend README](frontend/README.md).
 ## Database Architecture
 ![Database Schema](schema.png)
 
