@@ -72,24 +72,6 @@ python manage.py create_test_data
 python manage.py process --file path/to/menu.pdf
 ```
 
-- **Add restaurant menu from JSON**
-
-```
-python manage.py add_restaurant_menu path/to/menu.json
-```
-
-- **Delete restaurant**
-
-```
-python manage.py delete_restaurant restaurant_id
-```
-
-- **Delete all data**
-
-```
-python manage.py delete_data
-```
-
 ## API Endpoints
 
 - `GET /api/restaurants/` - List all restaurants
