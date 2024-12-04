@@ -9,6 +9,7 @@ Snapshot of the database is provided [here](sqldump.sql).
 - `menu_menuversion`: Handles menu versioning with a flag `is_current` to track active versions
 - `menu_menusection`: Represents menu sections (e.g., appetizers, mains)
 - `menu_menuitem`: Contains individual menu items with names, descriptions, and prices
+More details about the database schema can be found in [django models](backend/menu/models.py) or the [sqldump](sqldump.sql).
 
 ### Performance Optimizations
 
