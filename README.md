@@ -1,5 +1,6 @@
 # Restaurant Menu Management System
 To run the project, follow the instructions in the [backend README](backend/README.md) and [frontend README](frontend/README.md).
+Snapshot of the database is provided [here](sqldump.sql).
 ## Database Architecture
 ![Database Schema](schema.png)
 
@@ -12,13 +13,13 @@ To run the project, follow the instructions in the [backend README](backend/READ
 ### Performance Optimizations
 
 #### Indexes
-1. **Full-Text Search Indexes** (see `fts.sql`)
+1. **Full-Text Search Indexes** (see [fts.sql](backend/fts.sql))
    - `menu_item_search` on `menu_menuitem (name, description)`
    - `restaurant_search` on `menu_restaurant (name, address, cuisine_type)`
    - Enables efficient natural language searches across menu items and restaurants
    - Optimizes queries for partial text matches and relevance ranking
 
-#### Materialized Views & Triggers (see `mv.sql`)
+#### Materialized Views & Triggers (see [mv.sql](backend/mv.sql))
 1. **Menu Statistics View (`v_menu_statistics`)**
    - Tracks per-restaurant statistics:
      - Total menu items
@@ -26,7 +27,7 @@ To run the project, follow the instructions in the [backend README](backend/READ
      - Last update timestamp
    - Materialized in `menu_menustatistics` table for performance
    
-2. **Auto-Update Triggers** (see `mv.sql`)
+2. **Auto-Update Triggers** (see [mv.sql](backend/mv.sql))
    - `update_menu_statistics_insert`: Updates stats on new menu items
    - `update_menu_statistics_update`: Refreshes stats on item modifications
    - `update_menu_statistics_delete`: Adjusts stats when items are removed
@@ -88,7 +89,7 @@ To run the project, follow the instructions in the [backend README](backend/READ
 
 > **Note**: Composite indexes (like version + display_order) can also be used for queries on their prefix (just version), but not vice versa.
 
-## ETL Pipeline (See backend/menu/management/commands/process.py)
+## ETL Pipeline (See [backend/menu/management/commands/process.py](backend/menu/management/commands/process.py))
 ### Extraction
 - We used the [Zerox](https://github.com/getomni-ai/zerox) python library to extract the text from the pdf files in markdown format.
 
