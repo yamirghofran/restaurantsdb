@@ -1,5 +1,5 @@
-/frontend/.env
-/backend/.env
-/backend/menu/__pycache__/*
-/backend/menu/temp_output/*
-/backend/menu/uploads/*
+frontend/.env
+backend/.env
+backend/menu/__pycache__/*
+backend/menu/temp_output/*
+backend/menu/uploads/*
