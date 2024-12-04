@@ -112,6 +112,16 @@ export function AppSidebar({
           />
         )}
         <SearchForm onSearch={handleSearch} />
+        <div className="rounded-lg bg-muted p-2 text-sm flex items-center justify-center">
+          <a 
+            href="https://github.com/yamirghofran/restaurantsdb" 
+            target="_blank"
+            rel="noopener noreferrer" 
+            className="text-muted-foreground hover:text-foreground transition-colors"
+          >
+            View on GitHub
+          </a>
+        </div>
         {!isUploading && (
           <Button 
             size="sm" 

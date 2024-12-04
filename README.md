@@ -80,10 +80,6 @@
 - **version + status**: Optimizes status queries for specific menu versions
 - **start_time**: Supports time-based filtering and sorting of processing logs
 
-#### SearchIndex
-- **entity_type + entity_id (unique together)**: Ensures uniqueness and speeds up entity lookups
-- **last_updated**: Optimizes queries for recently updated search entries
-
 ### Index Usage Patterns
 - **Ordering Indexes (display_order combinations)**: Used for maintaining menu item/section order. Critical for displaying menus in correct sequence.
 - **Lookup Indexes (name fields)**: Speeds up direct lookups. Important for search functionality.
@@ -92,16 +88,33 @@
 
 > **Note**: Composite indexes (like version + display_order) can also be used for queries on their prefix (just version), but not vice versa.
 
+## ETL Pipeline (See backend/menu/management/commands/process.py)
+### Extraction
+- We used the (https://github.com/getomni-ai/zerox)[Zerox] python library to extract the text from the pdf files in markdown format.
+
+### Transformation
+- We used the OpenAI API to transform the markdown into a JSON format that obeys our schema structure (enforced with OpenAI Structured Outputs).
+
+### Loading
+- We used the Django ORM to load the data into the database from the JSON format. 
+
 ## Implementation Challenges
 - **Materialized Views**: Materialized views are not supported in MySQL so we had to create a trigger to update the statistics view whenever a menu item was created, updated, or deleted.
 - **Triggers**: Triggers are not supported in MySQL so we had to create a stored procedure to update the statistics view whenever a menu item was created, updated, or deleted.
 - **Versioning**: For the versioning to work, the AI had to extract the exact same name from the menu which was unreliable at first but worked in most cases after multiple attempts.
+
+## Future Improvements 
+**Better Filtering**: In the future, we would implement more detailed filtering (e.g. by cuisine, dietary restrictions, etc.)
+**More Crud Operations**: We would implement more CRUD operations to make the menu management system more robust. For example, editing a menu, deleting a menu, etc.
+
 
 ## Sample Queries
 - We had one command that would process a menu and create/update the database records. It would get the menu from a pdf file path and then extract the data and create/update the records.
 ```bash
 python manage.py process /path/to/menu.pdf
 ```
+- Output:
+![Output](process_output.png)
 
 This would show logs in the process and show if the process was successful or not.
 
