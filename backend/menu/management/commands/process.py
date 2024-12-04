@@ -51,7 +51,7 @@ class Command(BaseCommand):
                 messages=[
                     {
                         "role": "system", 
-                        "content": [{"type": "text", "text": "Return information from a restaurant menu in the specified json schema. Make sure to include every single piece of information, sections, menu items, etc. in the menu. Do not leave out any information."}]
+                        "content": [{"type": "text", "text": "Return information from a restaurant menu in the specified json schema. Make sure to include every single piece of information, sections, menu items, etc. in the menu. Do not leave out any information. Use these specific dietary restriction IDs: 40=Vegetarian, 41=Vegan, 42=Seafood, 43=gluten, 44=soy, 45=dairy, 46=shellfish, 47/50=gluten-free, 48=fish, 49=alcohol, 51=egg, 52=nuts"}]
                     },
                     {
                         "role": "user",
@@ -115,7 +115,8 @@ class Command(BaseCommand):
                                                         "display_order": {"type": "integer"},
                                                         "dietary_restrictions": {
                                                             "type": "array",
-                                                            "items": {"type": "string"}
+                                                            "items": {"type": "integer"},
+                                                            "description": "Array of dietary restriction IDs: 40=Vegetarian, 41=Vegan, 42=Seafood, 43=gluten, 44=soy, 45=dairy, 46=shellfish, 47/50=gluten-free, 48=fish, 49=alcohol, 51=egg, 52=nuts"
                                                         }
                                                     },
                                                     "required": ["name", "description", "price", "currency", "calories", "spice_level", "is_available", "display_order", "dietary_restrictions"],
@@ -201,9 +202,12 @@ class Command(BaseCommand):
                                 display_order=item_data['display_order']
                             )
 
-                            for restriction_name in item_data['dietary_restrictions']:
-                                restriction, _ = DietaryRestriction.objects.get_or_create(name=restriction_name)
-                                item.dietary_restrictions.add(restriction)
+                            for restriction_id in item_data['dietary_restrictions']:
+                                try:
+                                    restriction = DietaryRestriction.objects.get(id=restriction_id)
+                                    item.dietary_restrictions.add(restriction)
+                                except DietaryRestriction.DoesNotExist:
+                                    self.stdout.write(self.style.WARNING(f'Dietary restriction ID {restriction_id} not found'))
 
                     processing_log.status = 'completed'
                     processing_log.end_time = timezone.now()

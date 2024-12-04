@@ -149,9 +149,15 @@ export function AppSidebar({
               size="sm" 
               disabled={!selectedFile || uploadStatus === 'uploading'}
               onClick={handleFileUpload}
-              className={uploadStatus === 'uploading' ? 'animate-spin' : ''}
             >
-              {uploadStatus === 'uploading' ? 'Uploading...' : selectedFile ? 'Upload' : 'Select File'}
+              {uploadStatus === 'uploading' ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Uploading...
+                </>
+              ) : (
+                selectedFile ? 'Upload' : 'Select File'
+              )}
             </Button>
             <Button 
               size="sm" 
