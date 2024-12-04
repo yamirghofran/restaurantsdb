@@ -91,3 +91,22 @@
 - **Relationship Indexes (automatically created for foreign keys)**: Django automatically creates indexes for ForeignKey fields. Optimizes joins and relationship queries.
 
 > **Note**: Composite indexes (like version + display_order) can also be used for queries on their prefix (just version), but not vice versa.
+
+## Implementation Challenges
+- **Materialized Views**: Materialized views are not supported in MySQL so we had to create a trigger to update the statistics view whenever a menu item was created, updated, or deleted.
+- **Triggers**: Triggers are not supported in MySQL so we had to create a stored procedure to update the statistics view whenever a menu item was created, updated, or deleted.
+- **Versioning**: For the versioning to work, the AI had to extract the exact same name from the menu which was unreliable at first but worked in most cases after multiple attempts.
+
+## Sample Queries
+- We had one command that would process a menu and create/update the database records. It would get the menu from a pdf file path and then extract the data and create/update the records.
+```bash
+python manage.py process /path/to/menu.pdf
+```
+
+This would show logs in the process and show if the process was successful or not.
+
+
+## Examples of Inputs and Outputs
+- Input: backend/pdfs/thehatmenu_eng.pdf
+- Output:
+![Output](thehatoutput.png)
