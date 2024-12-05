@@ -2,6 +2,10 @@ from django.db import models
 
 # Create your models here.
 class Restaurant(models.Model):
+    """
+    Represents a restaurant with basic information and menu data.
+    Supports full-text search on name, address and cuisine type.
+    """
     name = models.CharField(max_length=255)
     address = models.TextField(null=True, blank=True)
     phone = models.CharField(max_length=50, null=True, blank=True)
@@ -13,6 +17,10 @@ class Restaurant(models.Model):
 
     @classmethod
     def search(cls, query):
+        """
+        Full-text search on restaurant data.
+        Uses MySQL FULLTEXT index on name, address and cuisine_type.
+        """
         return cls.objects.raw(
             """
             SELECT * FROM menu_restaurant 
@@ -28,6 +36,11 @@ class Restaurant(models.Model):
         ]
 
 class MenuVersion(models.Model):
+    """
+    Represents a version of a restaurant's menu.
+    Tracks source, effective date and current status.
+    Only one version can be current per restaurant.
+    """
     SOURCE_CHOICES = [
         ('upload', 'Upload'),
         ('scrape', 'Scrape'),
@@ -66,6 +79,11 @@ class DietaryRestriction(models.Model):
     icon_url = models.URLField(max_length=255, null=True, blank=True)
 
 class MenuItem(models.Model):
+    """
+    Represents an item on a menu section.
+    Includes pricing, dietary info and availability status.
+    Supports full-text search on name and description.
+    """
     section = models.ForeignKey(MenuSection, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
     description = models.TextField(null=True, blank=True)
@@ -80,6 +98,11 @@ class MenuItem(models.Model):
 
     @classmethod
     def search(cls, query):
+        """
+        Full-text search on menu items.
+        Joins with restaurant data to include restaurant context in results.
+        Uses MySQL FULLTEXT index on name and description.
+        """
         return cls.objects.raw(
             """
             SELECT mi.*, r.id as restaurant_id, r.name as restaurant_name 
@@ -100,6 +123,10 @@ class MenuItem(models.Model):
         ]
 
 class ProcessingLog(models.Model):
+    """
+    Tracks menu processing operations including uploads and AI processing.
+    Records timing, status and error details for debugging.
+    """
     PROCESS_CHOICES = [
         ('upload', 'Upload'),
         ('scrape', 'Scrape'),
@@ -128,6 +155,10 @@ class ProcessingLog(models.Model):
         ]
 
 class MenuStatistics(models.Model):
+    """
+    Read-only view model providing aggregated menu statistics per restaurant.
+    Updates automatically via database triggers.
+    """
     restaurant = models.OneToOneField(Restaurant, primary_key=True, on_delete=models.DO_NOTHING)
     total_items = models.IntegerField()
     avg_price = models.DecimalField(max_digits=10, decimal_places=2)
@@ -138,6 +169,10 @@ class MenuStatistics(models.Model):
         db_table = 'v_menu_statistics'
 
 class SearchIndex(models.Model):
+    """
+    Generic search index for menu-related entities.
+    Supports incremental indexing of restaurants, items and sections.
+    """
     ENTITY_CHOICES = [
         ('restaurant', 'Restaurant'),
         ('menu_item', 'Menu Item'),

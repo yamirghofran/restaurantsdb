@@ -27,6 +27,11 @@ import os
 from django_filters import FilterSet, NumberFilter, ModelMultipleChoiceFilter
 
 class RestaurantViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for managing restaurant data.
+    Supports CRUD operations, filtering by cuisine type and active status,
+    and searching by name, address and cuisine type.
+    """
     queryset = Restaurant.objects.all()
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ['cuisine_type', 'is_active']
@@ -39,6 +44,10 @@ class RestaurantViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['get'])
     def menu_versions(self, request, pk=None):
+        """
+        Get all menu versions for a specific restaurant.
+        Returns serialized menu version data including sections and items.
+        """
         restaurant = self.get_object()
         versions = MenuVersion.objects.filter(restaurant=restaurant)
         serializer = MenuVersionSerializer(versions, many=True)
@@ -46,6 +55,13 @@ class RestaurantViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'])
     def unified_search(self, request):
+        """
+        Search across restaurants and menu items.
+        Returns matching restaurants and menu items in a combined response.
+        
+        Query params:
+            q: Search query string
+        """
         query = request.query_params.get('q', '')
         if not query:
             return Response([])
@@ -80,6 +96,12 @@ class RestaurantViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['get'])
     def full_details(self, request, pk=None):
+        """
+        Get complete restaurant details including:
+        - Current menu with all sections and items
+        - All menu versions with current version marked
+        - Restaurant metadata
+        """
         restaurant = self.get_object()
         
         # Get current menu version
@@ -124,6 +146,17 @@ class RestaurantViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'], parser_classes=[MultiPartParser, FormParser])
     def process_menu(self, request):
+        """
+        Process uploaded menu file (PDF or HTML) and create menu data.
+        
+        Request params:
+            file: Menu file to process
+            
+        Returns:
+            200: Success response
+            400: Invalid file format
+            500: Processing error
+        """
         menu_file = request.FILES.get('file')
         if not menu_file:
             return Response(
@@ -158,6 +191,10 @@ class RestaurantViewSet(viewsets.ModelViewSet):
             )
 
 class MenuVersionViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for managing menu versions.
+    Supports CRUD operations and filtering by restaurant, current status and source type.
+    """
     queryset = MenuVersion.objects.all()
     serializer_class = MenuVersionSerializer
     filter_backends = [DjangoFilterBackend]
@@ -165,6 +202,14 @@ class MenuVersionViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'])
     def set_current(self, request):
+        """
+        Set a menu version as current for a restaurant.
+        Unsets current flag on all other versions for that restaurant.
+        
+        Request body:
+            restaurant_id: ID of restaurant
+            version_id: ID of version to set as current
+        """
         restaurant_id = request.data.get('restaurant_id')
         version_id = request.data.get('version_id')
         
@@ -183,6 +228,11 @@ class MenuVersionViewSet(viewsets.ModelViewSet):
             )
 
 class MenuSectionViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for managing menu sections.
+    Supports CRUD operations and filtering by menu version.
+    Returns sections ordered by display_order.
+    """
     queryset = MenuSection.objects.all()
     serializer_class = MenuSectionSerializer
     filter_backends = [DjangoFilterBackend]
@@ -196,6 +246,11 @@ class MenuSectionViewSet(viewsets.ModelViewSet):
         return queryset.order_by('display_order')
 
 class MenuItemFilter(FilterSet):
+    """
+    Filter for menu items supporting:
+    - Multiple dietary restrictions (AND filter)
+    - Section, availability and spice level filtering
+    """
     dietary_restrictions = ModelMultipleChoiceFilter(
         queryset=DietaryRestriction.objects.all(),
         method='filter_dietary_restrictions'
@@ -212,6 +267,11 @@ class MenuItemFilter(FilterSet):
         fields = ['section', 'is_available', 'spice_level', 'dietary_restrictions']
 
 class MenuItemViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for managing menu items.
+    Supports CRUD operations, filtering by section/availability/spice level/dietary restrictions,
+    and searching by name and description.
+    """
     queryset = MenuItem.objects.all()
     serializer_class = MenuItemSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
@@ -225,6 +285,11 @@ class DietaryRestrictionViewSet(viewsets.ModelViewSet):
     search_fields = ['name']
 
 class MenuStatisticsFilter(FilterSet):
+    """
+    Filter for menu statistics supporting:
+    - Min/max total items
+    - Min/max average price
+    """
     min_items = NumberFilter(field_name='total_items', lookup_expr='gte')
     max_items = NumberFilter(field_name='total_items', lookup_expr='lte')
     min_price = NumberFilter(field_name='avg_price', lookup_expr='gte')
@@ -235,6 +300,10 @@ class MenuStatisticsFilter(FilterSet):
         fields = ['min_items', 'max_items', 'min_price', 'max_price']
 
 class MenuStatisticsViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    Read-only ViewSet for menu statistics.
+    Provides aggregated stats per restaurant including total items and average prices.
+    """
     queryset = MenuStatistics.objects.all()
     serializer_class = MenuStatisticsSerializer
     filter_backends = [DjangoFilterBackend]
