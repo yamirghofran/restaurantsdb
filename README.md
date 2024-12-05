@@ -90,6 +90,36 @@ More details about the database schema can be found in [django models](backend/m
 
 > **Note**: Composite indexes (like version + display_order) can also be used for queries on their prefix (just version), but not vice versa.
 
+### API Endpoints
+
+#### Restaurant Endpoints
+```
+GET /api/restaurants/
+GET /api/restaurants/{id}/
+GET /api/restaurants/{id}/menu_versions/
+GET /api/restaurants/{id}/full_details/
+POST /api/restaurants/process_menu/
+GET /api/restaurants/unified_search/?q={query}
+```
+
+#### Menu Version Endpoints
+```
+GET /api/menu-versions/
+POST /api/menu-versions/set_current/
+GET /api/menu-versions/{id}/
+```
+
+#### Menu Items Endpoints
+```
+GET /api/menu-items/?section={section_id}&dietary_restrictions={ids}
+GET /api/menu-items/search/?q={query}
+```
+
+#### Statistics Endpoints
+```
+GET /api/statistics/?min_price={price}&max_price={price}&min_items={count}&max_items={count}
+```
+
 ## ETL Pipeline (See [backend/menu/management/commands/process.py](backend/menu/management/commands/process.py))
 ### Extraction
 - We used the [Zerox](https://github.com/getomni-ai/zerox) python library to extract the text from the pdf files in markdown format.
@@ -110,17 +140,35 @@ More details about the database schema can be found in [django models](backend/m
 **Better Filtering**: In the future, we would implement more detailed filtering (e.g. by cuisine, dietary restrictions, etc.)
 **More Crud Operations**: We would implement more CRUD operations to make the menu management system more robust. For example, editing a menu, deleting a menu, etc.
 
+### Sample Queries
 
-## Sample Queries
-- We had one command that would process a menu and create/update the database records. It would get the menu from a pdf file path and then extract the data and create/update the records.
+#### Process Menu Command
 ```bash
 python manage.py process /path/to/menu.pdf
 ```
-- Output:
-![Output](process_output.png)
 
-This would show logs in the process and show if the process was successful or not.
+#### Full-Text Search Query
+```sql
+SELECT * FROM menu_menuitem 
+WHERE MATCH(name, description) 
+AGAINST ('burger fries' IN NATURAL LANGUAGE MODE);
+```
 
+#### Get Current Menu
+```sql
+SELECT 
+    r.name as restaurant_name,
+    mv.*,
+    ms.name as section_name,
+    mi.*
+FROM menu_restaurant r
+JOIN menu_menuversion mv ON mv.restaurant_id = r.id
+JOIN menu_menusection ms ON ms.version_id = mv.id
+JOIN menu_menuitem mi ON mi.section_id = ms.id
+WHERE mv.is_current = TRUE
+AND r.id = ?
+ORDER BY ms.display_order, mi.display_order;
+```
 
 ## Examples of Inputs and Outputs
 - Input: backend/pdfs/thehatmenu_eng.pdf
