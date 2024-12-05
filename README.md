@@ -128,7 +128,7 @@ GET /api/statistics/?min_price={price}&max_price={price}&min_items={count}&max_i
 - We used the OpenAI API to transform the markdown into a JSON format that obeys our schema structure (enforced with OpenAI Structured Outputs).
 
 ### Loading
-- We used the Django ORM to load the data into the database from the JSON format. 
+- We used the Django ORM to load the data into the database from the JSON format with error handling and processing logs. 
 
 ## Implementation Challenges
 - **Versioning**: For the versioning to work, the AI had to extract the exact same name from the menu which was unreliable at first but worked in most cases after multiple attempts.
