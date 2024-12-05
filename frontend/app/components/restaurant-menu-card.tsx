@@ -77,8 +77,32 @@ export default function RestaurantMenuCard({ restaurant }: RestaurantMenuCardPro
   
   return (
     <div className="p-4 space-y-6">
-      <div className="flex justify-between items-center mb-6">
+      <div className="space-y-2">
         <h2 className="text-2xl font-bold">{restaurant.name}</h2>
+        
+        <div className="text-sm text-gray-600 space-y-1">
+          {restaurant.address && (
+            <p>📍 {restaurant.address}</p>
+          )}
+          {restaurant.phone && (
+            <p>📞 {restaurant.phone}</p>
+          )}
+          {restaurant.website && (
+            <p>
+              🌐 <a 
+                href={restaurant.website} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline"
+              >
+                {restaurant.website}
+              </a>
+            </p>
+          )}
+          {restaurant.cuisine_type && (
+            <p>🍽️ {restaurant.cuisine_type}</p>
+          )}
+        </div>
 
         {restaurant.all_versions && restaurant.all_versions.length > 1 && (
           <VersionSwitcher

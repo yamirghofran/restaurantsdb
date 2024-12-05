@@ -30,9 +30,10 @@ export interface MenuVersion {
 export interface Restaurant {
   id: number;
   name: string;
-  address: string;
-  cuisine_type: string;
-  is_active: boolean;
-  current_menu: MenuVersion;
-  all_versions: MenuVersion[];
+  address?: string;
+  phone?: string;
+  website?: string;
+  cuisine_type?: string;
+  current_menu?: MenuVersion;
+  all_versions?: MenuVersion[];
 } 
