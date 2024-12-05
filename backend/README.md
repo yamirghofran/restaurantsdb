@@ -47,6 +47,9 @@ exit
 # Run migrations
 python manage.py migrate
 
+# Create materialized views
+mysql -u root -p restaurantdb < mv.sql
+
 # Create fulltext indexes
 mysql -u root -p restaurantdb < fts.sql
 ```
@@ -65,18 +68,6 @@ The server will start at `http://localhost:8000`
 ```
 python manage.py create_test_data
 ```
-
-- **Process menu from PDF/HTML**
-
-```
-python manage.py process --file path/to/menu.pdf
-```
-
-## API Endpoints
-
-- `GET /api/restaurants/` - List all restaurants
-- `GET /api/restaurants/<id>/full_details` - Get restaurant details
-
 ## Project Structure
 
 ```
