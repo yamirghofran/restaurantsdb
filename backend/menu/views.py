@@ -24,7 +24,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from django.core.management import call_command
 from django.core.files.storage import default_storage
 import os
-from django_filters import FilterSet, NumberFilter
+from django_filters import FilterSet, NumberFilter, ModelMultipleChoiceFilter
 
 class RestaurantViewSet(viewsets.ModelViewSet):
     queryset = Restaurant.objects.all()
@@ -195,19 +195,28 @@ class MenuSectionViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(version_id=version_id)
         return queryset.order_by('display_order')
 
+class MenuItemFilter(FilterSet):
+    dietary_restrictions = ModelMultipleChoiceFilter(
+        queryset=DietaryRestriction.objects.all(),
+        method='filter_dietary_restrictions'
+    )
+
+    def filter_dietary_restrictions(self, queryset, name, value):
+        if value:
+            for restriction in value:
+                queryset = queryset.filter(dietary_restrictions=restriction)
+        return queryset
+
+    class Meta:
+        model = MenuItem
+        fields = ['section', 'is_available', 'spice_level', 'dietary_restrictions']
+
 class MenuItemViewSet(viewsets.ModelViewSet):
     queryset = MenuItem.objects.all()
     serializer_class = MenuItemSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
-    filterset_fields = ['section', 'is_available', 'spice_level']
+    filterset_class = MenuItemFilter
     search_fields = ['name', 'description']
-
-    def get_queryset(self):
-        queryset = MenuItem.objects.all()
-        section_id = self.request.query_params.get('section', None)
-        if section_id:
-            queryset = queryset.filter(section_id=section_id)
-        return queryset.order_by('display_order')
 
 class DietaryRestrictionViewSet(viewsets.ModelViewSet):
     queryset = DietaryRestriction.objects.all()
