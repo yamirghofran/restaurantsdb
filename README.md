@@ -104,6 +104,7 @@ More details about the database schema can be found in [django models](backend/m
 - **Materialized Views**: Materialized views are not supported in MySQL so we had to create a trigger to update the statistics view whenever a menu item was created, updated, or deleted.
 - **Triggers**: Triggers are not supported in MySQL so we had to create a stored procedure to update the statistics view whenever a menu item was created, updated, or deleted.
 - **Versioning**: For the versioning to work, the AI had to extract the exact same name from the menu which was unreliable at first but worked in most cases after multiple attempts.
+- **Async Processing**: We tried to use Celery and Redis to process the menus asynchronously but ran into issues with Django not being able to serialize the function calls so we ended up just running the command synchronously.
 
 ## Future Improvements 
 **Better Filtering**: In the future, we would implement more detailed filtering (e.g. by cuisine, dietary restrictions, etc.)
